@@ -21,120 +21,127 @@ st.set_page_config(
 # -----------------------------
 st.markdown("""
 <style>
-    /* Background */
     .stApp {
-        background-color: #FDF6F0;
+        background-color: #1A1A2E;
     }
 
-    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #F2E8DF;
+        background-color: #16213E;
     }
 
-    /* Main title */
     h1 {
-        color: #5C3D2E;
+        color: #AFA9EC;
         font-family: 'Georgia', serif;
-        font-size: 2rem;
-        padding-bottom: 0.2rem;
+        font-size: 1.8rem;
+        letter-spacing: 0.04em;
     }
 
-    /* Subheaders */
     h2, h3 {
-        color: #7A4F3A;
+        color: #7F77DD;
         font-family: 'Georgia', serif;
     }
 
-    /* Paragraph text */
     p, div, label {
-        color: #3D2B1F;
+        color: #CECBF6;
         font-family: 'Helvetica Neue', sans-serif;
     }
 
-    /* Text area */
     textarea {
-        background-color: #FFFAF6 !important;
-        border: 1.5px solid #D4A98A !important;
-        border-radius: 10px !important;
-        color: #3D2B1F !important;
+        background-color: #26215C !important;
+        border: 1px solid #534AB7 !important;
+        border-radius: 8px !important;
+        color: #EEEDFE !important;
         font-size: 0.95rem !important;
     }
 
-    /* Primary button */
     .stButton > button {
-        background-color: #C17D5A;
+        background-color: #7F77DD;
         color: white;
         border: none;
         border-radius: 8px;
         padding: 0.5rem 1.5rem;
         font-size: 1rem;
         font-weight: 600;
+        width: 100%;
         transition: background-color 0.2s ease;
     }
 
     .stButton > button:hover {
-        background-color: #A0623F;
+        background-color: #534AB7;
         color: white;
     }
 
-    /* Info boxes */
     [data-testid="stAlert"] {
-        background-color: #F5E6D8;
-        border-left: 4px solid #C17D5A;
+        background-color: #26215C;
+        border-left: 4px solid #7F77DD;
         border-radius: 8px;
-        color: #3D2B1F;
+        color: #EEEDFE;
     }
 
-    /* Success box */
-    .stSuccess {
-        background-color: #E8F5E9 !important;
-        border-left: 4px solid #7BAE7F !important;
+    .stSuccess > div {
+        background-color: #1C3A2E !important;
+        border-left: 4px solid #4CAF82 !important;
+        color: #A8D5B5 !important;
         border-radius: 8px !important;
     }
 
-    /* Divider */
     hr {
-        border-color: #D4A98A;
+        border-color: #534AB7;
+        opacity: 0.4;
     }
 
-    /* Radio buttons */
     .stRadio label {
-        color: #5C3D2E !important;
+        color: #AFA9EC !important;
         font-weight: 500;
     }
 
-    /* Select box */
     .stSelectbox label {
-        color: #5C3D2E !important;
+        color: #AFA9EC !important;
         font-weight: 600;
     }
 
-    /* Toggle */
     .stToggle label {
-        color: #5C3D2E !important;
+        color: #AFA9EC !important;
     }
 
-    /* Caption */
     .stCaption {
-        color: #9C7B6B !important;
+        color: #534AB7 !important;
         font-style: italic;
     }
 
-    /* Sidebar text */
     [data-testid="stSidebar"] h2,
     [data-testid="stSidebar"] h3,
     [data-testid="stSidebar"] p,
     [data-testid="stSidebar"] div {
-        color: #5C3D2E;
+        color: #AFA9EC;
     }
 
-    /* Card-style container */
+    [data-testid="stMetricLabel"] {
+        color: #AFA9EC !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #EEEDFE !important;
+    }
+
     .reflection-card {
-        background-color: #FFFAF6;
-        border: 1px solid #D4A98A;
+        background-color: #26215C;
+        border: 1px solid #534AB7;
         border-radius: 12px;
         padding: 1.2rem 1.5rem;
         margin-bottom: 1rem;
+        color: #EEEDFE;
+    }
+
+    .stExpander {
+        background-color: #26215C !important;
+        border: 1px solid #534AB7 !important;
+        border-radius: 8px !important;
+    }
+
+    .stTextArea > label {
+        color: #AFA9EC !important;
+        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -163,9 +170,9 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 # -----------------------------
 LANGUAGES = {
     "Español": {
-        "title": "🧠 Asistente de Práctica Reflexiva",
+        "title": "🧠 ASISTENTE DE PRÁCTICA REFLEXIVA",
         "subtitle": "Apoyo a la reflexión profesional en trabajo social",
-        "paste": "Pega el informe aquí",
+        "paste": "Pega el informe de intervención aquí",
         "mode": "Modo de reflexión",
         "single": "Caso individual",
         "cross": "Casos múltiples",
@@ -176,7 +183,7 @@ LANGUAGES = {
         "risk": "Nivel de atención",
     },
     "Euskara": {
-        "title": "🧠 Hausnarketa Laguntzailea",
+        "title": "🧠 HAUSNARKETA LAGUNTZAILEA",
         "subtitle": "Gizarte laneko hausnarketa profesionalerako laguntza",
         "paste": "Itsatsi txostena hemen",
         "mode": "Hausnarketa modua",
@@ -189,7 +196,7 @@ LANGUAGES = {
         "risk": "Arreta maila",
     },
     "English": {
-        "title": "🧠 Reflective Practice Assistant",
+        "title": "🧠 REFLECTIVE PRACTICE ASSISTANT",
         "subtitle": "Supporting professional reflection in social work",
         "paste": "Paste the intervention report here",
         "mode": "Reflection Mode",
@@ -264,7 +271,7 @@ st.markdown("")
 # -----------------------------
 # REFLECT
 # -----------------------------
-if st.button(f"🔍 {T['reflect']}", use_container_width=True):
+if st.button(f"🔍 {T['reflect']}"):
 
     if not report.strip():
         st.warning("Please enter a report before reflecting.")
@@ -389,7 +396,7 @@ if st.session_state.last_report:
             height=200
         )
 
-    if st.button(f"💾 {T['save']}", use_container_width=True):
+    if st.button(f"💾 {T['save']}"):
         qdrant.upsert(
             collection_name="reflective_case_memory",
             points=[PointStruct(
