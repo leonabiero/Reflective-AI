@@ -1,0 +1,6 @@
+streamlit
+anthropic
+qdrant-client
+sentence-transformers
+torch
+numpy
