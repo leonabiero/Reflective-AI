@@ -10,10 +10,13 @@ from datetime import datetime
 # -----------------------------
 # CONFIG
 # -----------------------------
-QDRANT_URL = "https://e5e68a2a-6fe0-4523-a56d-21705ad8bb0d.us-west-1-0.aws.cloud.qdrant.io:6333"
-QDRANT_API_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIiwic3ViamVjdCI6ImFwaS1rZXk6MWE2ZTFjYmQtZjA5YS00NzAwLWEzYWItYTAwMjcyZjBkMGRiIn0.t0kmgv27BsebU-Y9UTyihJDXADwBczJwUX0LSUHgbLE"
-ANTHROPIC_API_KEY = "skantapi03RJnRMO_eniOE3LVbbcAAV8MBJzqleQIjpyFZD5rPHoWo3rqfvKdS5VfDCN7l5UWR_jYHpTI3yIsdO0twEP2HBg-jCvDIwAA"
+QDRANT_URL = st.secrets["QDRANT_URL"]
+QDRANT_API_KEY = st.secrets["QDRANT_API_KEY"]
+ANTHROPIC_API_KEY = st.secrets["ANTHROPIC_API_KEY"]
 
+# -----------------------------
+# CLIENTS
+# -----------------------------
 claude = Anthropic(api_key=ANTHROPIC_API_KEY)
 
 qdrant = QdrantClient(
@@ -210,7 +213,7 @@ Never judge.
     st.write(response.content[0].text)
 
 # -----------------------------
-# FINAL REVIEW STEP (FIXED FLOW)
+# FINAL REVIEW STEP
 # -----------------------------
 st.divider()
 st.subheader("🧾 Final Review")
