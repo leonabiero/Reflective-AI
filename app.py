@@ -8,6 +8,138 @@ import uuid
 from datetime import datetime
 
 # -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(
+    page_title="Reflective Practice Assistant",
+    page_icon="🧠",
+    layout="centered"
+)
+
+# -----------------------------
+# CUSTOM CSS
+# -----------------------------
+st.markdown("""
+<style>
+    /* Background */
+    .stApp {
+        background-color: #FDF6F0;
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #F2E8DF;
+    }
+
+    /* Main title */
+    h1 {
+        color: #5C3D2E;
+        font-family: 'Georgia', serif;
+        font-size: 2rem;
+        padding-bottom: 0.2rem;
+    }
+
+    /* Subheaders */
+    h2, h3 {
+        color: #7A4F3A;
+        font-family: 'Georgia', serif;
+    }
+
+    /* Paragraph text */
+    p, div, label {
+        color: #3D2B1F;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+
+    /* Text area */
+    textarea {
+        background-color: #FFFAF6 !important;
+        border: 1.5px solid #D4A98A !important;
+        border-radius: 10px !important;
+        color: #3D2B1F !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Primary button */
+    .stButton > button {
+        background-color: #C17D5A;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background-color 0.2s ease;
+    }
+
+    .stButton > button:hover {
+        background-color: #A0623F;
+        color: white;
+    }
+
+    /* Info boxes */
+    [data-testid="stAlert"] {
+        background-color: #F5E6D8;
+        border-left: 4px solid #C17D5A;
+        border-radius: 8px;
+        color: #3D2B1F;
+    }
+
+    /* Success box */
+    .stSuccess {
+        background-color: #E8F5E9 !important;
+        border-left: 4px solid #7BAE7F !important;
+        border-radius: 8px !important;
+    }
+
+    /* Divider */
+    hr {
+        border-color: #D4A98A;
+    }
+
+    /* Radio buttons */
+    .stRadio label {
+        color: #5C3D2E !important;
+        font-weight: 500;
+    }
+
+    /* Select box */
+    .stSelectbox label {
+        color: #5C3D2E !important;
+        font-weight: 600;
+    }
+
+    /* Toggle */
+    .stToggle label {
+        color: #5C3D2E !important;
+    }
+
+    /* Caption */
+    .stCaption {
+        color: #9C7B6B !important;
+        font-style: italic;
+    }
+
+    /* Sidebar text */
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] div {
+        color: #5C3D2E;
+    }
+
+    /* Card-style container */
+    .reflection-card {
+        background-color: #FFFAF6;
+        border: 1px solid #D4A98A;
+        border-radius: 12px;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
 # CONFIG
 # -----------------------------
 QDRANT_URL = st.secrets["QDRANT_URL"]
@@ -32,43 +164,46 @@ model = SentenceTransformer("all-MiniLM-L6-v2")
 LANGUAGES = {
     "Español": {
         "title": "🧠 Asistente de Práctica Reflexiva",
+        "subtitle": "Apoyo a la reflexión profesional en trabajo social",
         "paste": "Pega el informe aquí",
         "mode": "Modo de reflexión",
         "single": "Caso individual",
         "cross": "Casos múltiples",
         "reflect": "Reflexionar",
-        "save": "Guardar",
+        "save": "Guardar en memoria",
         "summary": "Resumen",
-        "memory": "Memoria",
-        "risk": "Riesgo",
+        "memory": "Casos similares",
+        "risk": "Nivel de atención",
     },
     "Euskara": {
         "title": "🧠 Hausnarketa Laguntzailea",
-        "paste": "Itsatsi txostena",
+        "subtitle": "Gizarte laneko hausnarketa profesionalerako laguntza",
+        "paste": "Itsatsi txostena hemen",
         "mode": "Hausnarketa modua",
         "single": "Kasu bakarra",
         "cross": "Kasu anitz",
         "reflect": "Hausnartu",
-        "save": "Gorde",
+        "save": "Memorian gorde",
         "summary": "Laburpena",
-        "memory": "Memoria",
-        "risk": "Arriskua",
+        "memory": "Antzeko kasuak",
+        "risk": "Arreta maila",
     },
     "English": {
         "title": "🧠 Reflective Practice Assistant",
-        "paste": "Paste report here",
+        "subtitle": "Supporting professional reflection in social work",
+        "paste": "Paste the intervention report here",
         "mode": "Reflection Mode",
         "single": "Single case",
         "cross": "Multiple cases",
         "reflect": "Reflect",
-        "save": "Save",
+        "save": "Save to memory",
         "summary": "Summary",
-        "memory": "Memory",
-        "risk": "Risk",
+        "memory": "Similar cases",
+        "risk": "Attention level",
     }
 }
 
-lang = st.sidebar.selectbox("Language", list(LANGUAGES.keys()), index=0)
+lang = st.sidebar.selectbox("🌐 Language / Idioma / Hizkuntza", list(LANGUAGES.keys()), index=0)
 T = LANGUAGES[lang]
 
 # -----------------------------
@@ -96,10 +231,10 @@ def calculate_risk(text):
             score += 1
 
     if score >= 4:
-        return "🔴 High Risk"
+        return "🔴 High attention needed"
     elif score >= 2:
-        return "🟠 Medium Risk"
-    return "🟢 Low Risk"
+        return "🟠 Moderate attention"
+    return "🟢 Stable situation"
 
 
 # -----------------------------
@@ -110,69 +245,84 @@ for k in ["last_report", "last_embedding", "last_client", "last_results"]:
         st.session_state[k] = None if k != "last_results" else []
 
 # -----------------------------
-# UI
+# HEADER
 # -----------------------------
 st.title(T["title"])
+st.caption(T["subtitle"])
+st.markdown("---")
 
-pitch_mode = st.toggle("🎯 Pitch Mode (Clean UI)", value=True)
+# -----------------------------
+# REPORT INPUT
+# -----------------------------
+st.markdown("### 📝 Intervention Report")
+report = st.text_area(T["paste"], height=250, placeholder="Write or paste the professional intervention text here...")
 
-report = st.text_area(T["paste"], height=250)
+mode = st.radio(T["mode"], [T["single"], T["cross"]], horizontal=True)
 
-mode = st.radio(T["mode"], [T["single"], T["cross"]])
+st.markdown("")
 
 # -----------------------------
 # REFLECT
 # -----------------------------
-if st.button(T["reflect"]):
+if st.button(f"🔍 {T['reflect']}", use_container_width=True):
 
     if not report.strip():
-        st.warning("Enter report")
+        st.warning("Please enter a report before reflecting.")
         st.stop()
 
-    query_vector = get_embedding(report)
-    client_name = extract_client_name(report)
+    with st.spinner("Analysing the report..."):
 
-    st.session_state.last_report = report
-    st.session_state.last_embedding = query_vector
-    st.session_state.last_client = client_name
+        query_vector = get_embedding(report)
+        client_name = extract_client_name(report)
 
-    query_filter = None
-    if mode == T["single"] and client_name:
-        query_filter = {
-            "must": [{"key": "client_name", "match": {"value": client_name}}]
-        }
+        st.session_state.last_report = report
+        st.session_state.last_embedding = query_vector
+        st.session_state.last_client = client_name
 
-    results = qdrant.query_points(
-        collection_name="reflective_case_memory",
-        query=query_vector,
-        query_filter=query_filter,
-        limit=5,
-        with_payload=True
-    ).points
+        query_filter = None
+        if mode == T["single"] and client_name:
+            query_filter = {
+                "must": [{"key": "client_name", "match": {"value": client_name}}]
+            }
 
-    st.session_state.last_results = results
+        results = qdrant.query_points(
+            collection_name="reflective_case_memory",
+            query=query_vector,
+            query_filter=query_filter,
+            limit=5,
+            with_payload=True
+        ).points
+
+        st.session_state.last_results = results
 
     # ---------------- SUMMARY ----------------
-    st.info(f"""
-**{T['summary']}**
+    st.markdown("---")
+    st.markdown("### 📊 Summary")
 
-Client: {client_name or "Not detected"}
-
-Cases found: {len(results)}
-""")
-
-    # ---------------- RISK ----------------
-    st.info(f"{T['risk']}: {calculate_risk(report)}")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Client", client_name or "Not detected")
+    with col2:
+        st.metric("Similar cases found", len(results))
+    with col3:
+        st.metric(T["risk"], calculate_risk(report))
 
     # ---------------- MEMORY ----------------
-    st.subheader("🔍 Memory & Similarity")
+    if results:
+        st.markdown("### 🗂️ Similar Past Cases")
+        for i, r in enumerate(results):
+            p = r.payload
+            with st.expander(f"Case {i+1} — similarity: {round(r.score, 3)}"):
+                st.write(f"**Client:** {p.get('client_name', 'Unknown')}")
+                st.write(f"**Type:** {p.get('document_type', '—')}")
+                st.write(f"**Date:** {p.get('date', '—')}")
+    else:
+        st.info("No similar past cases found — this appears to be a new pattern.")
 
+    # ---------------- CLAUDE ----------------
     memory_text = ""
-
     if results:
         for i, r in enumerate(results):
-            st.write(f"Case {i+1} similarity: {round(r.score, 3)}")
-
             p = r.payload
             memory_text += f"""
 CASE {i+1}
@@ -182,60 +332,64 @@ Date: {p.get('date')}
 Report: {p.get('report_text')}
 """
     else:
-        st.info("No historical matches found.")
         memory_text = "No previous cases."
 
-    # ---------------- CLAUDE ----------------
-    response = claude.messages.create(
-        model="claude-opus-4-5-20251101",
-        max_tokens=1200,
-        system=f"""
-You are a reflective assistant.
+    with st.spinner("Generating reflective questions..."):
+        response = claude.messages.create(
+            model="claude-opus-4-5-20251101",
+            max_tokens=1200,
+            system=f"""
+You are a warm, thoughtful Reflective Practice Assistant supporting social work professionals.
 
 Respond in {lang}.
 
-Never judge.
+Never judge the professional or the report. Your role is to open up thinking, not evaluate quality.
 
-1. Observation vs Interpretation
-2. Evidence Strength
-3. Missing Information
-4. Alternatives
-5. Client Voice
-6. Reflection
+Structure your response around these six areas:
+1. Observation vs Interpretation — what is fact, what is assumption?
+2. Evidence Strength — what supports the conclusions drawn?
+3. Missing Information — what is absent that might matter?
+4. Alternative Explanations — what other perspectives could exist?
+5. Client Voice — how present is the person's own voice and goals?
+6. Practice Reflection — what might this reveal about professional practice patterns?
+
+Use gentle, curious, open-ended questions throughout.
 """,
-        messages=[{
-            "role": "user",
-            "content": f"REPORT:\n{report}\n\nHISTORY:\n{memory_text}"
-        }]
+            messages=[{
+                "role": "user",
+                "content": f"REPORT:\n{report}\n\nHISTORY:\n{memory_text}"
+            }]
+        )
+
+    st.markdown("---")
+    st.markdown("### 🧠 Reflective Questions")
+    st.markdown(
+        f'<div class="reflection-card">{response.content[0].text}</div>',
+        unsafe_allow_html=True
     )
 
-    st.subheader("🧠 AI Reflection")
-    st.write(response.content[0].text)
-
 # -----------------------------
-# FINAL REVIEW STEP
+# FINAL REVIEW & SAVE
 # -----------------------------
-st.divider()
-st.subheader("🧾 Final Review")
-
 if st.session_state.last_report:
+    st.markdown("---")
+    st.markdown("### 🧾 Review & Save")
 
     review = st.radio(
-        "Final decision",
-        ["Submit without changes", "Edit before saving"]
+        "Would you like to edit the report before saving?",
+        ["Save as is", "Edit before saving"]
     )
 
     final_report = st.session_state.last_report
 
     if review == "Edit before saving":
         final_report = st.text_area(
-            "Edit report",
+            "Edit the report below:",
             value=st.session_state.last_report,
             height=200
         )
 
-    if st.button(T["save"]):
-
+    if st.button(f"💾 {T['save']}", use_container_width=True):
         qdrant.upsert(
             collection_name="reflective_case_memory",
             points=[PointStruct(
@@ -252,23 +406,27 @@ if st.session_state.last_report:
                 }
             )]
         )
-
-        st.success("Saved successfully!")
+        st.success("✅ Saved to memory successfully!")
 
 # -----------------------------
 # SIDEBAR
 # -----------------------------
 with st.sidebar:
-    st.subheader(T["memory"])
+    st.markdown("---")
+    st.subheader(f"🗂️ {T['memory']}")
 
     if st.session_state.last_results:
         for r in st.session_state.last_results:
             p = r.payload
             st.markdown(f"""
-**Client:** {p.get('client_name')}  
-**Type:** {p.get('document_type')}  
-**Date:** {p.get('date')}  
+**Client:** {p.get('client_name', '—')}
+**Type:** {p.get('document_type', '—')}
+**Date:** {p.get('date', '—')}
+
 ---
 """)
     else:
-        st.info("No memory loaded")
+        st.info("No cases loaded yet. Run a reflection to see similar cases here.")
+
+    st.markdown("---")
+    st.caption("Reflective Practice Assistant · EDE Fundazioa · BGT 2026")
