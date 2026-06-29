@@ -11,7 +11,7 @@ from datetime import datetime
 # PAGE CONFIG
 # -----------------------------
 st.set_page_config(
-    page_title="Reflective Practice Assistant",
+    page_title="Reflective Practice Companion",
     page_icon="🧠",
     layout="centered"
 )
@@ -32,6 +32,10 @@ st.markdown("""
     h1 {
         color: #AFA9EC;
         font-family: 'Georgia', serif;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 1.1rem;
     }
 
     h2, h3 {
@@ -88,14 +92,50 @@ qdrant = QdrantClient(
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # -----------------------------
-# LANGUAGE (kept minimal but intact)
+# LANGUAGE SYSTEM (FULL FIX)
 # -----------------------------
 LANGUAGES = {
     "English": {
         "title": "🧠 REFLECTIVE PRACTICE COMPANION",
         "paste": "Paste intervention report",
-        "save": "Save report",
-        "daily": "Start Daily Reflection Session"
+        "save": "💾 Save report",
+        "daily": "🧠 Start Daily Reflection Session",
+        "saved": "Saved successfully.",
+        "empty": "Please enter a report.",
+        "no_session": "No reports in today's session yet.",
+        "reports_today": "Reports today:",
+        "reflection_title": "🧠 Daily Reflection",
+        "sidebar": "Today's Session",
+        "lang_label": "Language",
+        "generating": "Generating reflection..."
+    },
+    "Español": {
+        "title": "🧠 ACOMPAÑANTE DE PRÁCTICA REFLEXIVA",
+        "paste": "Pegar informe de intervención",
+        "save": "💾 Guardar informe",
+        "daily": "🧠 Iniciar sesión de reflexión diaria",
+        "saved": "Guardado correctamente.",
+        "empty": "Por favor introduce un informe.",
+        "no_session": "No hay informes en la sesión de hoy.",
+        "reports_today": "Informes de hoy:",
+        "reflection_title": "🧠 Reflexión diaria",
+        "sidebar": "Sesión de hoy",
+        "lang_label": "Idioma",
+        "generating": "Generando reflexión..."
+    },
+    "Euskara": {
+        "title": "🧠 HAUSNARKETA LAGUNTZAILEA",
+        "paste": "Itsatsi esku-hartze txostena",
+        "save": "💾 Gorde txostena",
+        "daily": "🧠 Eguneko hausnarketa hasi",
+        "saved": "Ondo gorde da.",
+        "empty": "Mesedez sartu txostena.",
+        "no_session": "Ez dago txostenik gaurko saioan.",
+        "reports_today": "Gaurko txostenak:",
+        "reflection_title": "🧠 Eguneko hausnarketa",
+        "sidebar": "Gaurko saioa",
+        "lang_label": "Hizkuntza",
+        "generating": "Hausnarketa sortzen..."
     }
 }
 
@@ -119,16 +159,13 @@ def get_client_history(client_name):
         return []
 
     try:
-        results = qdrant.search(
+        return qdrant.search(
             collection_name="reflective_case_memory",
             query_vector=get_embedding(client_name),
             limit=3,
             with_payload=True
         )
-        return results
-
-    except Exception as e:
-        st.warning("Could not retrieve client history.")
+    except:
         return []
 
 
@@ -150,12 +187,12 @@ st.markdown("---")
 report = st.text_area(T["paste"], height=250)
 
 # -----------------------------
-# SAVE REPORT (NO REFLECTION ANYMORE)
+# SAVE REPORT
 # -----------------------------
-if st.button(f"💾 {T['save']}"):
+if st.button(T["save"]):
 
     if not report.strip():
-        st.warning("Please enter a report.")
+        st.warning(T["empty"])
         st.stop()
 
     embedding = get_embedding(report)
@@ -169,7 +206,6 @@ if st.button(f"💾 {T['save']}"):
         "report_text": report
     }
 
-    # Save to Qdrant (permanent memory)
     qdrant.upsert(
         collection_name="reflective_case_memory",
         points=[PointStruct(
@@ -179,7 +215,6 @@ if st.button(f"💾 {T['save']}"):
         )]
     )
 
-    # Save to SESSION memory (today's work)
     st.session_state.today_reports.append({
         "text": report,
         "client_name": client_name,
@@ -187,77 +222,62 @@ if st.button(f"💾 {T['save']}"):
         "payload": payload
     })
 
-    st.success("Saved successfully.")
+    st.success(T["saved"])
 
 # -----------------------------
-# DAILY REFLECTION SESSION
+# DAILY REFLECTION
 # -----------------------------
 st.markdown("---")
 
-if st.button(f"🧠 {T['daily']}"):
+if st.button(T["daily"]):
 
     if len(st.session_state.today_reports) == 0:
-        st.info("No reports in today's session yet.")
+        st.info(T["no_session"])
         st.stop()
 
     today = st.session_state.today_reports
-
-    # Build structured reflection input
-    reflection_input = ""
-    all_clients = {}
+    grouped = {}
 
     for r in today:
-        client = r["client_name"]
-        if client not in all_clients:
-            all_clients[client] = []
-        all_clients[client].append(r)
+        grouped.setdefault(r["client_name"], []).append(r)
 
-    # Build memory context
     memory_context = ""
 
-    for client, reports in all_clients.items():
+    for client, reports in grouped.items():
 
         history = get_client_history(client)
 
         memory_context += f"\n\nCLIENT: {client}\n"
+        memory_context += "\nTODAY:\n"
 
-        memory_context += "\nTODAY'S REPORTS:\n"
         for r in reports:
             memory_context += f"- {r['text']}\n"
 
         if history:
-            memory_context += "\nPAST HISTORY (RAG):\n"
+            memory_context += "\nHISTORY:\n"
             for h in history:
                 p = h.payload
-                memory_context += f"- {p.get('date')} : {p.get('report_text')}\n"
+                memory_context += f"- {p.get('date')}: {p.get('report_text')}\n"
         else:
-            memory_context += "\nPAST HISTORY: First contact (no previous records)\n"
+            memory_context += "\nHISTORY: First contact\n"
 
-    system_prompt = f"""
-You are a reflective practice assistant for social workers.
+    system_prompt = """
+You are a reflective practice assistant.
 
-You do NOT evaluate performance.
-You do NOT judge quality.
-You support professional reflection and learning.
+You do NOT evaluate or judge.
 
 Structure your response:
 
-1. Patterns Across Today's Practice
-2. Client Continuity & Change (using history if available)
+1. Patterns Across Practice Today
+2. Client Continuity & Change
 3. Client Voice Analysis
-4. Expanding Lens (bias, assumptions, alternative explanations)
+4. Expanding Lens (bias/assumptions)
 5. Evidence & Missing Information
 6. Practice Reflection
 7. Reflective Questions
-
-Focus on:
-- patterns across cases
-- development over time (if history exists)
-- balance of client vs professional voice
-- assumptions and interpretation
 """
 
-    with st.spinner("Generating reflection..."):
+    with st.spinner(T["generating"]):
 
         response = claude.messages.create(
             model="claude-opus-4-5-20251101",
@@ -265,12 +285,12 @@ Focus on:
             system=system_prompt,
             messages=[{
                 "role": "user",
-                "content": f"DAILY PRACTICE DATA:\n{memory_context}"
+                "content": memory_context
             }]
         )
 
     st.markdown("---")
-    st.markdown("### 🧠 Daily Reflection")
+    st.markdown(f"### {T['reflection_title']}")
 
     st.markdown(
         f'<div class="reflection-card">{response.content[0].text}</div>',
@@ -281,9 +301,7 @@ Focus on:
 # SIDEBAR
 # -----------------------------
 with st.sidebar:
-    st.markdown("### 📊 Today's Session")
-
-    st.write(f"Reports today: {len(st.session_state.today_reports)}")
-
+    st.markdown(f"### {T['sidebar']}")
+    st.write(f"{T['reports_today']} {len(st.session_state.today_reports)}")
     st.markdown("---")
-    st.caption("Reflective Practice Companion · Session-based Prototype")
+    st.caption("Reflective Practice Companion")
