@@ -32,8 +32,9 @@ st.markdown("""
     h1 {
         color: #AFA9EC;
         font-family: 'Georgia', serif;
-        font-size: 1.8rem;
+        font-size: 1.2rem;
         letter-spacing: 0.04em;
+        white-space: nowrap;
     }
 
     h2, h3 {
